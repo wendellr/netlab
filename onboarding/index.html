@@ -281,6 +281,21 @@
       font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
     }
 
+    .input-row button {
+      border: 1px solid var(--line);
+      background: #0f1528;
+      color: var(--ink);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      cursor: pointer;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
     .student-output {
       margin-top: 10px;
       display: grid;
@@ -320,12 +335,13 @@
     <section class="grid">
       <div class="card">
         <h2>1) Acesso rapido</h2>
-        <span class="pill">Localhost</span>
+        <span class="pill">netlab.ioda.com.br</span>
         <div class="links">
-          <a class="link" href="https://netlab.ioda.com.br/r1/" target="_blank" rel="noopener">R1 <span>/r1/</span></a>
-          <a class="link" href="https://netlab.ioda.com.br/r2/" target="_blank" rel="noopener">R2 <span>/r2/</span></a>
-          <a class="link" href="https://netlab.ioda.com.br/r3/" target="_blank" rel="noopener">R3 <span>/r3/</span></a>
-          <a class="link" href="https://netlab.ioda.com.br/r4/" target="_blank" rel="noopener">R4 <span>/r4/</span></a>
+          <a class="link" href="/" target="_blank" rel="noopener">Onboarding <span>/</span></a>
+          <a class="link" href="#" id="quick-r1">R1 <span>aguardando</span></a>
+          <a class="link" href="#" id="quick-r2">R2 <span>aguardando</span></a>
+          <a class="link" href="#" id="quick-r3">R3 <span>aguardando</span></a>
+          <a class="link" href="#" id="quick-r4">R4 <span>aguardando</span></a>
         </div>
       </div>
 
@@ -364,8 +380,10 @@
       <div class="card">
         <h2>Meu acesso (15 alunos)</h2>
         <div class="input-row">
-          <label for="student-name">Digite seu nome para ver seu conjunto de portas</label>
+          <label for="student-name">Digite seu nome para solicitar o lab</label>
           <input id="student-name" type="text" placeholder="ex: Maria Silva" />
+          <button id="request-lab" type="button">Solicitar lab</button>
+          <span class="status" id="lab-status">Nenhum lab provisionado ainda.</span>
         </div>
         <div class="student-output" id="student-output">
           <span class="pill" id="student-slot">Aluno: --</span>
@@ -452,10 +470,10 @@ R3 -> 150.3.3.0/24
 
         <h3>Acesso aos roteadores</h3>
         <pre>
-R1 - AS1: https://netlab.ioda.com.br/r1/
-R2 - AS2: https://netlab.ioda.com.br/r2/
-R3 - AS3: https://netlab.ioda.com.br/r3/
-R4 - AS4: https://netlab.ioda.com.br/r4/
+      R1 - AS1: https://netlab.ioda.com.br/alunoXX/r1/
+      R2 - AS2: https://netlab.ioda.com.br/alunoXX/r2/
+      R3 - AS3: https://netlab.ioda.com.br/alunoXX/r3/
+      R4 - AS4: https://netlab.ioda.com.br/alunoXX/r4/
         </pre>
 
         <h3>Parte 1 - Verificacao da configuracao base</h3>
@@ -571,8 +589,12 @@ clear ip bgp * soft
 
     <section id="tab-turma" class="tab-panel" role="tabpanel" aria-labelledby="tab-turma-btn">
       <div class="card content" style="margin-top: 18px;">
-        <h2>Links por aluno (kit para 15 alunos)</h2>
-        <p>Use o script <span class="tag">tools/start-class.sh</span> para subir as 15 copias. Cada aluno recebe 4 portas.</p>
+        <h2>Links por aluno (via paths)</h2>
+        <p>Os labs sao criados sob demanda. O formato dos links e:</p>
+        <pre>/alunoXX/r1
+      /alunoXX/r2
+      /alunoXX/r3
+      /alunoXX/r4</pre>
 
         <table>
           <thead>
@@ -585,21 +607,21 @@ clear ip bgp * soft
             </tr>
           </thead>
           <tbody>
-            <tr><td>aluno01</td><td>https://netlab.ioda.com.br:7681</td><td>https://netlab.ioda.com.br:7682</td><td>https://netlab.ioda.com.br:7683</td><td>https://netlab.ioda.com.br:7684</td></tr>
-            <tr><td>aluno02</td><td>https://netlab.ioda.com.br:7691</td><td>https://netlab.ioda.com.br:7692</td><td>https://netlab.ioda.com.br:7693</td><td>https://netlab.ioda.com.br:7694</td></tr>
-            <tr><td>aluno03</td><td>https://netlab.ioda.com.br:7701</td><td>https://netlab.ioda.com.br:7702</td><td>https://netlab.ioda.com.br:7703</td><td>https://netlab.ioda.com.br:7704</td></tr>
-            <tr><td>aluno04</td><td>https://netlab.ioda.com.br:7711</td><td>https://netlab.ioda.com.br:7712</td><td>https://netlab.ioda.com.br:7713</td><td>https://netlab.ioda.com.br:7714</td></tr>
-            <tr><td>aluno05</td><td>https://netlab.ioda.com.br:7721</td><td>https://netlab.ioda.com.br:7722</td><td>https://netlab.ioda.com.br:7723</td><td>https://netlab.ioda.com.br:7724</td></tr>
-            <tr><td>aluno06</td><td>https://netlab.ioda.com.br:7731</td><td>https://netlab.ioda.com.br:7732</td><td>https://netlab.ioda.com.br:7733</td><td>https://netlab.ioda.com.br:7734</td></tr>
-            <tr><td>aluno07</td><td>https://netlab.ioda.com.br:7741</td><td>https://netlab.ioda.com.br:7742</td><td>https://netlab.ioda.com.br:7743</td><td>https://netlab.ioda.com.br:7744</td></tr>
-            <tr><td>aluno08</td><td>https://netlab.ioda.com.br:7751</td><td>https://netlab.ioda.com.br:7752</td><td>https://netlab.ioda.com.br:7753</td><td>https://netlab.ioda.com.br:7754</td></tr>
-            <tr><td>aluno09</td><td>https://netlab.ioda.com.br:7761</td><td>https://netlab.ioda.com.br:7762</td><td>https://netlab.ioda.com.br:7763</td><td>https://netlab.ioda.com.br:7764</td></tr>
-            <tr><td>aluno10</td><td>https://netlab.ioda.com.br:7771</td><td>https://netlab.ioda.com.br:7772</td><td>https://netlab.ioda.com.br:7773</td><td>https://netlab.ioda.com.br:7774</td></tr>
-            <tr><td>aluno11</td><td>https://netlab.ioda.com.br:7781</td><td>https://netlab.ioda.com.br:7782</td><td>https://netlab.ioda.com.br:7783</td><td>https://netlab.ioda.com.br:7784</td></tr>
-            <tr><td>aluno12</td><td>https://netlab.ioda.com.br:7791</td><td>https://netlab.ioda.com.br:7792</td><td>https://netlab.ioda.com.br:7793</td><td>https://netlab.ioda.com.br:7794</td></tr>
-            <tr><td>aluno13</td><td>https://netlab.ioda.com.br:7801</td><td>https://netlab.ioda.com.br:7802</td><td>https://netlab.ioda.com.br:7803</td><td>https://netlab.ioda.com.br:7804</td></tr>
-            <tr><td>aluno14</td><td>https://netlab.ioda.com.br:7811</td><td>https://netlab.ioda.com.br:7812</td><td>https://netlab.ioda.com.br:7813</td><td>https://netlab.ioda.com.br:7814</td></tr>
-            <tr><td>aluno15</td><td>https://netlab.ioda.com.br:7821</td><td>https://netlab.ioda.com.br:7822</td><td>https://netlab.ioda.com.br:7823</td><td>https://netlab.ioda.com.br:7824</td></tr>
+            <tr><td>aluno01</td><td>/aluno01/r1/</td><td>/aluno01/r2/</td><td>/aluno01/r3/</td><td>/aluno01/r4/</td></tr>
+            <tr><td>aluno02</td><td>/aluno02/r1/</td><td>/aluno02/r2/</td><td>/aluno02/r3/</td><td>/aluno02/r4/</td></tr>
+            <tr><td>aluno03</td><td>/aluno03/r1/</td><td>/aluno03/r2/</td><td>/aluno03/r3/</td><td>/aluno03/r4/</td></tr>
+            <tr><td>aluno04</td><td>/aluno04/r1/</td><td>/aluno04/r2/</td><td>/aluno04/r3/</td><td>/aluno04/r4/</td></tr>
+            <tr><td>aluno05</td><td>/aluno05/r1/</td><td>/aluno05/r2/</td><td>/aluno05/r3/</td><td>/aluno05/r4/</td></tr>
+            <tr><td>aluno06</td><td>/aluno06/r1/</td><td>/aluno06/r2/</td><td>/aluno06/r3/</td><td>/aluno06/r4/</td></tr>
+            <tr><td>aluno07</td><td>/aluno07/r1/</td><td>/aluno07/r2/</td><td>/aluno07/r3/</td><td>/aluno07/r4/</td></tr>
+            <tr><td>aluno08</td><td>/aluno08/r1/</td><td>/aluno08/r2/</td><td>/aluno08/r3/</td><td>/aluno08/r4/</td></tr>
+            <tr><td>aluno09</td><td>/aluno09/r1/</td><td>/aluno09/r2/</td><td>/aluno09/r3/</td><td>/aluno09/r4/</td></tr>
+            <tr><td>aluno10</td><td>/aluno10/r1/</td><td>/aluno10/r2/</td><td>/aluno10/r3/</td><td>/aluno10/r4/</td></tr>
+            <tr><td>aluno11</td><td>/aluno11/r1/</td><td>/aluno11/r2/</td><td>/aluno11/r3/</td><td>/aluno11/r4/</td></tr>
+            <tr><td>aluno12</td><td>/aluno12/r1/</td><td>/aluno12/r2/</td><td>/aluno12/r3/</td><td>/aluno12/r4/</td></tr>
+            <tr><td>aluno13</td><td>/aluno13/r1/</td><td>/aluno13/r2/</td><td>/aluno13/r3/</td><td>/aluno13/r4/</td></tr>
+            <tr><td>aluno14</td><td>/aluno14/r1/</td><td>/aluno14/r2/</td><td>/aluno14/r3/</td><td>/aluno14/r4/</td></tr>
+            <tr><td>aluno15</td><td>/aluno15/r1/</td><td>/aluno15/r2/</td><td>/aluno15/r3/</td><td>/aluno15/r4/</td></tr>
           </tbody>
         </table>
       </div>
@@ -621,50 +643,71 @@ clear ip bgp * soft
     });
 
     const nameInput = document.getElementById('student-name');
+    const requestButton = document.getElementById('request-lab');
     const output = document.getElementById('student-output');
     const slotLabel = document.getElementById('student-slot');
+    const statusLabel = document.getElementById('lab-status');
+    const quickLinks = {
+      r1: document.getElementById('quick-r1'),
+      r2: document.getElementById('quick-r2'),
+      r3: document.getElementById('quick-r3'),
+      r4: document.getElementById('quick-r4'),
+    };
 
-    function hashName(value) {
-      let hash = 0;
-      for (let i = 0; i < value.length; i += 1) {
-        hash = (hash * 31 + value.charCodeAt(i)) % 2147483647;
-      }
-      return hash;
-    }
-
-    function renderStudentLinks(name) {
-      const cleaned = name.trim();
-      if (!cleaned) {
-        slotLabel.textContent = 'Aluno: --';
-        output.querySelectorAll('a').forEach((a) => a.remove());
-        return;
-      }
-
-      const slot = (hashName(cleaned) % 15) + 1;
-      const base = 7681 + (slot - 1) * 10;
-      slotLabel.textContent = `Aluno: ${String(slot).padStart(2, '0')} (ports ${base}-${base + 3})`;
-
+    function clearLinks() {
       output.querySelectorAll('a').forEach((a) => a.remove());
-      const links = [
-        { label: `R1 - ${base}`, url: `https://netlab.ioda.com.br:${base}` },
-        { label: `R2 - ${base + 1}`, url: `https://netlab.ioda.com.br:${base + 1}` },
-        { label: `R3 - ${base + 2}`, url: `https://netlab.ioda.com.br:${base + 2}` },
-        { label: `R4 - ${base + 3}`, url: `https://netlab.ioda.com.br:${base + 3}` },
-      ];
-
-      links.forEach((link) => {
-        const a = document.createElement('a');
-        a.href = link.url;
-        a.target = '_blank';
-        a.rel = 'noopener';
-        a.textContent = link.label;
-        output.appendChild(a);
+      Object.values(quickLinks).forEach((link) => {
+        link.href = '#';
+        link.querySelector('span').textContent = 'aguardando';
       });
     }
 
-    nameInput.addEventListener('input', (event) => {
-      renderStudentLinks(event.target.value);
-    });
+    async function requestLab() {
+      const name = nameInput.value.trim();
+      if (!name) {
+        statusLabel.textContent = 'Digite seu nome para solicitar um lab.';
+        return;
+      }
+
+      statusLabel.textContent = 'Provisionando lab...';
+      clearLinks();
+
+      try {
+        const response = await fetch('/api/labs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || 'Erro ao provisionar lab.');
+        }
+
+        const data = await response.json();
+        slotLabel.textContent = `Aluno: ${data.id} (expira em ${data.expiresAt})`;
+        statusLabel.textContent = 'Lab pronto. Use os links abaixo.';
+
+        output.querySelectorAll('a').forEach((a) => a.remove());
+        ['r1', 'r2', 'r3', 'r4'].forEach((key) => {
+          const a = document.createElement('a');
+          a.href = data.urls[key];
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.textContent = `${key.toUpperCase()} - ${data.urls[key]}`;
+          output.appendChild(a);
+
+          if (quickLinks[key]) {
+            quickLinks[key].href = data.urls[key];
+            quickLinks[key].querySelector('span').textContent = data.paths[key];
+          }
+        });
+      } catch (error) {
+        statusLabel.textContent = `Falha ao provisionar: ${error.message}`;
+      }
+    }
+
+    requestButton.addEventListener('click', requestLab);
   </script>
 </body>
 </html>

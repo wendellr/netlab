@@ -14,7 +14,7 @@ Laboratorio de BGP (AS-Path Prepend e MED) com FRR, terminais web (ttyd) e pagin
 1. Suba os containers:
 
 ```
-docker compose up -d
+docker compose --profile nginx up -d
 ```
 
 2. Acesse a pagina:
@@ -61,6 +61,29 @@ Para parar tudo:
 ```
 
 Detalhes em [kit-15-alunos.md](kit-15-alunos.md).
+
+## Provisionamento sob demanda (Portainer)
+
+Existe um provisionador em Go que cria labs sob demanda e derruba em 2h. Ele usa Redis e acessa o Docker via socket.
+
+### Como habilitar
+
+- Suba a stack principal com perfis:
+
+```
+COMPOSE_PROFILES=nginx,provisioner
+```
+
+- Variaveis principais:
+
+```
+PROVISIONER_PORT=9002
+REDIS_ADDR=127.0.0.1:6379
+COMPOSE_DIR=/data/compose/<STACK_ID>
+PUBLIC_BASE_URL=https://netlab.ioda.com.br
+```
+
+O provisionador monta os links em paths (`/alunoXX/r1`) e atualiza o Nginx automaticamente.
 
 ## Arquivos principais
 

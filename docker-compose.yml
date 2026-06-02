@@ -69,8 +69,12 @@ services:
   nginx:
     image: nginx:1.27-alpine
     container_name: ${LAB_PREFIX:-bgp_lab1}_nginx
+    profiles:
+      - nginx
     ports:
-      - "80:80"
+      - "${NGINX_PORT:-80}:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./nginx:/etc/nginx/conf.d:ro
       - ./onboarding:/usr/share/nginx/html:ro
@@ -79,6 +83,31 @@ services:
       - ttyd-r2
       - ttyd-r3
       - ttyd-r4
+    restart: unless-stopped
+
+  provisioner:
+    build:
+      context: ./provisioner
+    image: bgp-lab1-provisioner:latest
+    container_name: ${LAB_PREFIX:-bgp_lab1}_provisioner
+    profiles:
+      - provisioner
+    ports:
+      - "${PROVISIONER_PORT:-9002}:9002"
+    environment:
+      REDIS_ADDR: ${REDIS_ADDR:-127.0.0.1:6379}
+      COMPOSE_DIR: ${COMPOSE_DIR:-}
+      LAB_TTL_SECONDS: ${LAB_TTL_SECONDS:-7200}
+      MAX_SLOTS: ${MAX_SLOTS:-15}
+      BASE_PORT: ${BASE_PORT:-7681}
+      PORT_STEP: ${PORT_STEP:-10}
+      BACKEND_HOST: ${BACKEND_HOST:-host.docker.internal}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://netlab.ioda.com.br}
+      NGINX_CONTAINER: ${NGINX_CONTAINER:-${LAB_PREFIX:-bgp_lab1}_nginx}
+      NGINX_LABS_PATH: ${NGINX_LABS_PATH:-/data/nginx/labs/labs.conf}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./nginx/labs:/data/nginx/labs
     restart: unless-stopped
 
   # -----------------------------------------------------------
