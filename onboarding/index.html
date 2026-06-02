@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BGP Lab 1 - Onboarding</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0f1a;
+      --bg-2: #12182a;
+      --ink: #f5f7ff;
+      --muted: #b8c0d6;
+      --accent: #ffb000;
+      --accent-2: #24c8ff;
+      --card: #161e33;
+      --line: #233050;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(1200px 500px at 10% -10%, #2b3561 0%, transparent 60%),
+                  radial-gradient(900px 600px at 90% 0%, #1e4b63 0%, transparent 55%),
+                  linear-gradient(180deg, var(--bg), var(--bg-2));
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px 64px;
+    }
+
+    header {
+      display: grid;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: clamp(28px, 4vw, 44px);
+      margin: 0;
+      line-height: 1.05;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: clamp(14px, 2vw, 18px);
+      max-width: 70ch;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 22px 0 10px;
+    }
+
+    .tab-btn {
+      border: 1px solid var(--line);
+      background: #0f1528;
+      color: var(--ink);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: border 0.15s ease, transform 0.15s ease;
+    }
+
+    .tab-btn[aria-selected="true"] {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(255, 176, 0, 0.35);
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.is-active {
+      display: block;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      margin-top: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(240px 120px at 80% -20%, rgba(255,176,0,0.18), transparent 60%);
+      pointer-events: none;
+    }
+
+    .card h2 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      background: #0f1528;
+      color: var(--muted);
+      border: 1px solid var(--line);
+    }
+
+    .links {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      text-decoration: none;
+      color: var(--ink);
+      background: #0f1528;
+      transition: transform 0.15s ease, border 0.15s ease;
+    }
+
+    .link:hover { transform: translateY(-2px); border-color: #31406a; }
+
+    .routes {
+      display: grid;
+      gap: 10px;
+      font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 13px;
+    }
+
+    .routes code {
+      background: #0f1528;
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      border-radius: 12px;
+      display: block;
+      color: #e8ebff;
+    }
+
+    .diagram {
+      font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 13px;
+      color: #cfd6ec;
+      background: #0f1528;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    .step {
+      display: grid;
+      gap: 10px;
+      color: var(--muted);
+    }
+
+    .step strong { color: var(--ink); }
+
+    .footer {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .content h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    .content h3 {
+      margin: 18px 0 8px;
+      font-size: 16px;
+      color: var(--ink);
+    }
+
+    .content p,
+    .content li {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .content ul {
+      padding-left: 18px;
+    }
+
+    .content pre {
+      background: #0f1528;
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+      border-radius: 12px;
+      overflow-x: auto;
+      color: #e8ebff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align: left;
+    }
+
+    th {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .tag {
+      font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      color: var(--accent-2);
+    }
+
+    .input-row {
+      display: grid;
+      gap: 10px;
+    }
+
+    .input-row label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .input-row input {
+      background: #0f1528;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .student-output {
+      margin-top: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .student-output a {
+      color: var(--ink);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: #10172c;
+    }
+
+    @media (max-width: 640px) {
+      .link span:last-child { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <span class="badge">BGP Lab 1 · AS-Path Prepend e MED</span>
+      <h1>Onboarding rapido</h1>
+      <p class="lead">Abra um roteador, valide BGP, execute o prepend e depois o MED. Use os links abaixo para entrar no vtysh via navegador.</p>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn" role="tab" aria-selected="true" aria-controls="tab-onboarding" id="tab-onboarding-btn">Onboarding</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-roteiro" id="tab-roteiro-btn">Roteiro completo</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-turma" id="tab-turma-btn">Links por aluno</button>
+    </nav>
+
+    <section id="tab-onboarding" class="tab-panel is-active" role="tabpanel" aria-labelledby="tab-onboarding-btn">
+
+    <section class="grid">
+      <div class="card">
+        <h2>1) Acesso rapido</h2>
+        <span class="pill">Localhost</span>
+        <div class="links">
+          <a class="link" href="https://netlab.ioda.com.br/r1/" target="_blank" rel="noopener">R1 <span>/r1/</span></a>
+          <a class="link" href="https://netlab.ioda.com.br/r2/" target="_blank" rel="noopener">R2 <span>/r2/</span></a>
+          <a class="link" href="https://netlab.ioda.com.br/r3/" target="_blank" rel="noopener">R3 <span>/r3/</span></a>
+          <a class="link" href="https://netlab.ioda.com.br/r4/" target="_blank" rel="noopener">R4 <span>/r4/</span></a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2) Validacao base</h2>
+        <div class="routes">
+          <code>show ip bgp summary</code>
+          <code>show ip bgp</code>
+          <code>show ip route bgp</code>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>3) AS-Path Prepend</h2>
+        <div class="step">
+          <strong>R1:</strong>
+          <span>route-map PREP + set as-path prepend 1 1 1 1</span>
+          <span>neighbor 4.4.4.4 route-map PREP out</span>
+          <span>clear ip bgp 4.4.4.4 soft out</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>4) MED</h2>
+        <div class="step">
+          <strong>R2:</strong>
+          <span>route-map MED, set metric 2</span>
+          <strong>R4:</strong>
+          <span>route-map MED, set metric 4</span>
+          <strong>R3:</strong>
+          <span>bgp always-compare-med</span>
+          <span>bgp bestpath as-path ignore</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Meu acesso (15 alunos)</h2>
+        <div class="input-row">
+          <label for="student-name">Digite seu nome para ver seu conjunto de portas</label>
+          <input id="student-name" type="text" placeholder="ex: Maria Silva" />
+        </div>
+        <div class="student-output" id="student-output">
+          <span class="pill" id="student-slot">Aluno: --</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid" style="margin-top: 18px;">
+      <div class="card">
+        <h2>Topologia</h2>
+        <div class="diagram">
+AS1           AS2           AS3           AS4
++-----+       +-----+       +-----+       +-----+
+| R1  |-------| R2  |-------| R3  |-------| R4  |
+|1.1.1.1|     |2.2.2.2|     |3.3.3.3|     |4.4.4.4|
++--+--+       +-----+       +-----+       +--+--+
+   |                                             |
+   |     LAN compartilhada 150.1.1.0/24          |
+   +---------------------------------------------+
+     (R1=150.1.1.1, R4=150.1.1.4)
+
+Links de transito:
+- R1-R2: 10.0.0.0/29
+- R2-R3: 10.0.0.8/29
+- R3-R4: 10.0.0.16/29 e 10.0.0.24/29
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Se o terminal nao responde</h2>
+        <div class="step">
+          <span>1) Clique dentro do terminal</span>
+          <span>2) Recarregue a pagina</span>
+          <span>3) Confirme o link (porta correta)</span>
+          <span>4) Se persistir, avise o professor</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      Dica: use o roteiro completo no arquivo roteiro-aluno.md para as questoes e explicacoes.
+      <br />
+      Prof. Wendell Rodrigues, Departamento de Telematica - IFCE
+    </div>
+    </section>
+
+    <section id="tab-roteiro" class="tab-panel" role="tabpanel" aria-labelledby="tab-roteiro-btn">
+      <div class="card content" style="margin-top: 18px;">
+        <h2>Roteiro completo</h2>
+
+        <h3>Guia rapido do aluno</h3>
+        <ol>
+          <li>Abra os terminais web (cada roteador abre direto no vtysh).</li>
+          <li>Valide a configuracao base em todos os roteadores.</li>
+          <li>Execute o AS-Path prepend em R1 e confira em R4.</li>
+          <li>Aplique MED em R2 e R4, depois ajuste o criterio em R3.</li>
+          <li>Verifique com <span class="tag">show ip bgp</span> e <span class="tag">show ip bgp &lt;prefixo&gt;</span>.</li>
+        </ol>
+
+        <h3>Topologia</h3>
+        <pre>
+                         AS1           AS2           AS3           AS4
+                      +-----+       +-----+       +-----+       +-----+
+                      | R1  |-------| R2  |-------| R3  |-------| R4  |
+                      |1.1.1.1|     |2.2.2.2|     |3.3.3.3|     |4.4.4.4|
+                      +--+--+       +-----+       +-----+       +--+--+
+                           |                                             |
+                           |        LAN compartilhada 150.1.1.0/24        |
+                           +---------------------------------------------+
+                                    (R1 = 150.1.1.1, R4 = 150.1.1.4)
+
+Links de transito (roteadores adjacentes):
+- R1-R2: 10.0.0.0/29
+- R2-R3: 10.0.0.8/29
+- R3-R4: 10.0.0.16/29 e 10.0.0.24/29 (dois enlaces)
+        </pre>
+        <p><strong>Peering BGP usa loopbacks</strong> (ebgp-multihop 3). R3-R4 tem dois links fisicos.</p>
+        <p>Prefixos anunciados:</p>
+        <pre>
+R1/R4 -> 150.1.1.0/24
+R2 -> 150.2.2.0/24
+R3 -> 150.3.3.0/24
+        </pre>
+
+        <h3>Acesso aos roteadores</h3>
+        <pre>
+R1 - AS1: https://netlab.ioda.com.br/r1/
+R2 - AS2: https://netlab.ioda.com.br/r2/
+R3 - AS3: https://netlab.ioda.com.br/r3/
+R4 - AS4: https://netlab.ioda.com.br/r4/
+        </pre>
+
+        <h3>Parte 1 - Verificacao da configuracao base</h3>
+        <pre>
+show ip bgp summary
+show ip bgp
+show ip route bgp
+        </pre>
+
+        <p><strong>Questao 1:</strong> No <span class="tag">show ip bgp</span> de R4, qual e o next-hop preferido para <span class="tag">150.2.2.0/24</span>?</p>
+        <p><strong>Questao 2:</strong> O que significa o <span class="tag">?</span> na coluna Origin da tabela BGP?</p>
+
+        <h3>Parte 2 - AS-Path Prepend</h3>
+        <pre>
+conf t
+route-map PREP permit 10
+ set as-path prepend 1 1 1 1
+exit
+router bgp 1
+ neighbor 4.4.4.4 route-map PREP out
+end
+clear ip bgp 4.4.4.4 soft out
+        </pre>
+
+        <p><strong>Questao 3:</strong> Como ficou o AS_PATH do caminho via R1 apos o prepend?</p>
+        <p><strong>Questao 4:</strong> O prepend foi aplicado apenas para R4 ou para todos os peers de R1?</p>
+
+        <h3>Parte 3 - MED</h3>
+        <p><strong>R4:</strong></p>
+        <pre>
+conf t
+route-map MED permit 10
+ set metric 4
+exit
+router bgp 4
+ neighbor 3.3.3.3 route-map MED out
+end
+clear ip bgp 3.3.3.3 soft out
+        </pre>
+        <p><strong>R2:</strong></p>
+        <pre>
+conf t
+route-map MED permit 10
+ set metric 2
+exit
+router bgp 2
+ neighbor 3.3.3.3 route-map MED out
+end
+clear ip bgp 3.3.3.3 soft out
+        </pre>
+        <p><strong>R3:</strong></p>
+        <pre>
+conf t
+router bgp 3
+ bgp always-compare-med
+ bgp bestpath as-path ignore
+end
+clear ip bgp * soft
+        </pre>
+
+        <p><strong>Questao 5:</strong> Por que o MED ainda nao funciona antes dos ajustes em R3?</p>
+        <p><strong>Questao 6:</strong> Agora R3 prefere o caminho via R2?</p>
+        <p><strong>Questao 7:</strong> Em qual cenario seria perigoso usar <span class="tag">bgp bestpath as-path ignore</span>?</p>
+
+        <h3>Resumo dos atributos trabalhados</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Atributo</th>
+              <th>Escopo</th>
+              <th>Quem define</th>
+              <th>Quem usa</th>
+              <th>Melhor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>AS_PATH length</td>
+              <td>eBGP</td>
+              <td>Qualquer AS</td>
+              <td>Receptor</td>
+              <td>Menor</td>
+            </tr>
+            <tr>
+              <td>MED</td>
+              <td>eBGP</td>
+              <td>AS de origem</td>
+              <td>AS vizinho</td>
+              <td>Menor</td>
+            </tr>
+            <tr>
+              <td>LOCAL_PREF</td>
+              <td>iBGP</td>
+              <td>AS local</td>
+              <td>Roteadores do mesmo AS</td>
+              <td>Maior</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Comandos uteis</h3>
+        <pre>
+show ip bgp
+show ip bgp summary
+show ip bgp &lt;prefixo&gt;
+show ip bgp neighbors &lt;ip&gt;
+show route-map
+clear ip bgp &lt;ip&gt; soft out
+clear ip bgp * soft
+        </pre>
+      </div>
+    </section>
+
+    <section id="tab-turma" class="tab-panel" role="tabpanel" aria-labelledby="tab-turma-btn">
+      <div class="card content" style="margin-top: 18px;">
+        <h2>Links por aluno (kit para 15 alunos)</h2>
+        <p>Use o script <span class="tag">tools/start-class.sh</span> para subir as 15 copias. Cada aluno recebe 4 portas.</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Aluno</th>
+              <th>R1</th>
+              <th>R2</th>
+              <th>R3</th>
+              <th>R4</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>aluno01</td><td>https://netlab.ioda.com.br:7681</td><td>https://netlab.ioda.com.br:7682</td><td>https://netlab.ioda.com.br:7683</td><td>https://netlab.ioda.com.br:7684</td></tr>
+            <tr><td>aluno02</td><td>https://netlab.ioda.com.br:7691</td><td>https://netlab.ioda.com.br:7692</td><td>https://netlab.ioda.com.br:7693</td><td>https://netlab.ioda.com.br:7694</td></tr>
+            <tr><td>aluno03</td><td>https://netlab.ioda.com.br:7701</td><td>https://netlab.ioda.com.br:7702</td><td>https://netlab.ioda.com.br:7703</td><td>https://netlab.ioda.com.br:7704</td></tr>
+            <tr><td>aluno04</td><td>https://netlab.ioda.com.br:7711</td><td>https://netlab.ioda.com.br:7712</td><td>https://netlab.ioda.com.br:7713</td><td>https://netlab.ioda.com.br:7714</td></tr>
+            <tr><td>aluno05</td><td>https://netlab.ioda.com.br:7721</td><td>https://netlab.ioda.com.br:7722</td><td>https://netlab.ioda.com.br:7723</td><td>https://netlab.ioda.com.br:7724</td></tr>
+            <tr><td>aluno06</td><td>https://netlab.ioda.com.br:7731</td><td>https://netlab.ioda.com.br:7732</td><td>https://netlab.ioda.com.br:7733</td><td>https://netlab.ioda.com.br:7734</td></tr>
+            <tr><td>aluno07</td><td>https://netlab.ioda.com.br:7741</td><td>https://netlab.ioda.com.br:7742</td><td>https://netlab.ioda.com.br:7743</td><td>https://netlab.ioda.com.br:7744</td></tr>
+            <tr><td>aluno08</td><td>https://netlab.ioda.com.br:7751</td><td>https://netlab.ioda.com.br:7752</td><td>https://netlab.ioda.com.br:7753</td><td>https://netlab.ioda.com.br:7754</td></tr>
+            <tr><td>aluno09</td><td>https://netlab.ioda.com.br:7761</td><td>https://netlab.ioda.com.br:7762</td><td>https://netlab.ioda.com.br:7763</td><td>https://netlab.ioda.com.br:7764</td></tr>
+            <tr><td>aluno10</td><td>https://netlab.ioda.com.br:7771</td><td>https://netlab.ioda.com.br:7772</td><td>https://netlab.ioda.com.br:7773</td><td>https://netlab.ioda.com.br:7774</td></tr>
+            <tr><td>aluno11</td><td>https://netlab.ioda.com.br:7781</td><td>https://netlab.ioda.com.br:7782</td><td>https://netlab.ioda.com.br:7783</td><td>https://netlab.ioda.com.br:7784</td></tr>
+            <tr><td>aluno12</td><td>https://netlab.ioda.com.br:7791</td><td>https://netlab.ioda.com.br:7792</td><td>https://netlab.ioda.com.br:7793</td><td>https://netlab.ioda.com.br:7794</td></tr>
+            <tr><td>aluno13</td><td>https://netlab.ioda.com.br:7801</td><td>https://netlab.ioda.com.br:7802</td><td>https://netlab.ioda.com.br:7803</td><td>https://netlab.ioda.com.br:7804</td></tr>
+            <tr><td>aluno14</td><td>https://netlab.ioda.com.br:7811</td><td>https://netlab.ioda.com.br:7812</td><td>https://netlab.ioda.com.br:7813</td><td>https://netlab.ioda.com.br:7814</td></tr>
+            <tr><td>aluno15</td><td>https://netlab.ioda.com.br:7821</td><td>https://netlab.ioda.com.br:7822</td><td>https://netlab.ioda.com.br:7823</td><td>https://netlab.ioda.com.br:7824</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  <script>
+    const tabs = Array.from(document.querySelectorAll('.tab-btn'));
+    const panels = Array.from(document.querySelectorAll('.tab-panel'));
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const targetId = tab.getAttribute('aria-controls');
+        tabs.forEach((btn) => btn.setAttribute('aria-selected', 'false'));
+        panels.forEach((panel) => panel.classList.remove('is-active'));
+
+        tab.setAttribute('aria-selected', 'true');
+        document.getElementById(targetId).classList.add('is-active');
+      });
+    });
+
+    const nameInput = document.getElementById('student-name');
+    const output = document.getElementById('student-output');
+    const slotLabel = document.getElementById('student-slot');
+
+    function hashName(value) {
+      let hash = 0;
+      for (let i = 0; i < value.length; i += 1) {
+        hash = (hash * 31 + value.charCodeAt(i)) % 2147483647;
+      }
+      return hash;
+    }
+
+    function renderStudentLinks(name) {
+      const cleaned = name.trim();
+      if (!cleaned) {
+        slotLabel.textContent = 'Aluno: --';
+        output.querySelectorAll('a').forEach((a) => a.remove());
+        return;
+      }
+
+      const slot = (hashName(cleaned) % 15) + 1;
+      const base = 7681 + (slot - 1) * 10;
+      slotLabel.textContent = `Aluno: ${String(slot).padStart(2, '0')} (ports ${base}-${base + 3})`;
+
+      output.querySelectorAll('a').forEach((a) => a.remove());
+      const links = [
+        { label: `R1 - ${base}`, url: `https://netlab.ioda.com.br:${base}` },
+        { label: `R2 - ${base + 1}`, url: `https://netlab.ioda.com.br:${base + 1}` },
+        { label: `R3 - ${base + 2}`, url: `https://netlab.ioda.com.br:${base + 2}` },
+        { label: `R4 - ${base + 3}`, url: `https://netlab.ioda.com.br:${base + 3}` },
+      ];
+
+      links.forEach((link) => {
+        const a = document.createElement('a');
+        a.href = link.url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = link.label;
+        output.appendChild(a);
+      });
+    }
+
+    nameInput.addEventListener('input', (event) => {
+      renderStudentLinks(event.target.value);
+    });
+  </script>
+</body>
+</html>

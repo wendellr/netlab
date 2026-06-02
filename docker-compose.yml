@@ -73,7 +73,7 @@ services:
       - "80:80"
     volumes:
       - ./nginx:/etc/nginx/conf.d:ro
-      - ./onboarding.html:/usr/share/nginx/html/index.html:ro
+      - ./onboarding:/usr/share/nginx/html:ro
     depends_on:
       - ttyd-r1
       - ttyd-r2
