@@ -1,0 +1,267 @@
+version: "3.8"
+
+# =============================================================
+# BGP Lab 1 — AS-Path Prepend + MED
+# Baseado em: BGP Routing Protocol With 16 Practice Labs
+# Topologia: AS1(R1) -- AS2(R2) -- AS3(R3) -- AS4(R4)
+#                  \________________________/
+# =============================================================
+
+networks:
+  # R1 -- R2  (10.0.0.0/29)
+  net_r1_r2:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.0.0/29
+          gateway: 10.0.0.6
+
+  # R2 -- R3  (10.0.0.8/29)
+  net_r2_r3:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.0.8/29
+          gateway: 10.0.0.14
+
+  # R3 -- R4  (10.0.0.16/29)
+  net_r3_r4a:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.0.16/29
+          gateway: 10.0.0.22
+
+  # R3 -- R4  segundo link (10.0.0.24/29)
+  net_r3_r4b:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.0.24/29
+          gateway: 10.0.0.30
+
+  # R1 -- R4  LAN compartilhada (150.1.1.0/24)
+  net_lan_r1_r4:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 150.1.1.0/24
+          gateway: 150.1.1.254
+
+  # R2 LAN (150.2.2.0/24)
+  net_lan_r2:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 150.2.2.0/24
+          gateway: 150.2.2.254
+
+  # R3 LAN (150.3.3.0/24)
+  net_lan_r3:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 150.3.3.0/24
+          gateway: 150.3.3.254
+
+services:
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: ${LAB_PREFIX:-bgp_lab1}_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./onboarding.html:/usr/share/nginx/html/index.html:ro
+    depends_on:
+      - ttyd-r1
+      - ttyd-r2
+      - ttyd-r3
+      - ttyd-r4
+    restart: unless-stopped
+
+  # -----------------------------------------------------------
+  # R1 — AS 1
+  # Loopback: 1.1.1.1/32
+  # eth0: 10.0.0.1/30  (link R1-R2)
+  # eth1: 150.1.1.1/24 (LAN compartilhada com R4)
+  # -----------------------------------------------------------
+  r1:
+    image: frrouting/frr:latest
+    platform: linux/amd64
+    container_name: ${LAB_PREFIX:-bgp_lab1}_r1
+    hostname: R1
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    sysctls:
+      - net.ipv4.ip_forward=1
+    networks:
+      net_r1_r2:
+        ipv4_address: 10.0.0.1
+      net_lan_r1_r4:
+        ipv4_address: 150.1.1.1
+    volumes:
+      - ./frr/r1:/etc/frr
+    restart: unless-stopped
+
+  # -----------------------------------------------------------
+  # R2 — AS 2
+  # Loopback: 2.2.2.2/32
+  # eth0: 10.0.0.2/30  (link R2-R1)
+  # eth1: 10.0.0.9/30  (link R2-R3)
+  # eth2: 150.2.2.1/24 (LAN R2)
+  # Loopbacks extras: 192/193/194/195.1.1.1 (prefixos anunciados)
+  # -----------------------------------------------------------
+  r2:
+    image: frrouting/frr:latest
+    platform: linux/amd64
+    container_name: ${LAB_PREFIX:-bgp_lab1}_r2
+    hostname: R2
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    sysctls:
+      - net.ipv4.ip_forward=1
+    networks:
+      net_r1_r2:
+        ipv4_address: 10.0.0.2
+      net_r2_r3:
+        ipv4_address: 10.0.0.9
+      net_lan_r2:
+        ipv4_address: 150.2.2.1
+    volumes:
+      - ./frr/r2:/etc/frr
+    restart: unless-stopped
+
+  # -----------------------------------------------------------
+  # R3 — AS 3
+  # Loopback: 3.3.3.3/32
+  # eth0: 10.0.0.10/29 (link R3-R2)
+  # eth1: 10.0.0.17/29 (link R3-R4 primeiro)
+  # eth2: 10.0.0.25/29 (link R3-R4 segundo)
+  # eth3: 150.3.3.3/24 (LAN R3)
+  # -----------------------------------------------------------
+  r3:
+    image: frrouting/frr:latest
+    platform: linux/amd64
+    container_name: ${LAB_PREFIX:-bgp_lab1}_r3
+    hostname: R3
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    sysctls:
+      - net.ipv4.ip_forward=1
+    networks:
+      net_r2_r3:
+        ipv4_address: 10.0.0.10
+      net_r3_r4a:
+        ipv4_address: 10.0.0.17
+      net_r3_r4b:
+        ipv4_address: 10.0.0.25
+      net_lan_r3:
+        ipv4_address: 150.3.3.3
+    volumes:
+      - ./frr/r3:/etc/frr
+    restart: unless-stopped
+
+  # -----------------------------------------------------------
+  # R4 — AS 4
+  # Loopback: 4.4.4.4/32
+  # eth0: 150.1.1.4/24 (LAN compartilhada com R1)
+  # eth1: 10.0.0.18/29 (link R4-R3 primeiro)
+  # eth2: 10.0.0.26/29 (link R4-R3 segundo)
+  # -----------------------------------------------------------
+  r4:
+    image: frrouting/frr:latest
+    platform: linux/amd64
+    container_name: ${LAB_PREFIX:-bgp_lab1}_r4
+    hostname: R4
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    sysctls:
+      - net.ipv4.ip_forward=1
+    networks:
+      net_lan_r1_r4:
+        ipv4_address: 150.1.1.4
+      net_r3_r4a:
+        ipv4_address: 10.0.0.18
+      net_r3_r4b:
+        ipv4_address: 10.0.0.26
+    volumes:
+      - ./frr/r4:/etc/frr
+    restart: unless-stopped
+
+  # -----------------------------------------------------------
+  # ttyd-r1..r4 — terminais web para os alunos
+  # Acesso: http://<servidor>/r1  http://<servidor>/r2 ...
+  # -----------------------------------------------------------
+  ttyd-r1:
+    build:
+      context: ./ttyd
+    image: bgp-lab1-ttyd:latest
+    container_name: ${LAB_PREFIX:-bgp_lab1}_ttyd_r1
+    command: >
+      -W -p 7681 -t fontSize=16 -t theme=dark
+      docker exec -i ${LAB_PREFIX:-bgp_lab1}_r1 vtysh
+    ports:
+      - "${R1_PORT:-7681}:7681"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - r1
+    restart: unless-stopped
+
+  ttyd-r2:
+    build:
+      context: ./ttyd
+    image: bgp-lab1-ttyd:latest
+    container_name: ${LAB_PREFIX:-bgp_lab1}_ttyd_r2
+    command: >
+      -W -p 7682 -t fontSize=16 -t theme=dark
+      docker exec -i ${LAB_PREFIX:-bgp_lab1}_r2 vtysh
+    ports:
+      - "${R2_PORT:-7682}:7682"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - r2
+    restart: unless-stopped
+
+  ttyd-r3:
+    build:
+      context: ./ttyd
+    image: bgp-lab1-ttyd:latest
+    container_name: ${LAB_PREFIX:-bgp_lab1}_ttyd_r3
+    command: >
+      -W -p 7683 -t fontSize=16 -t theme=dark
+      docker exec -i ${LAB_PREFIX:-bgp_lab1}_r3 vtysh
+    ports:
+      - "${R3_PORT:-7683}:7683"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - r3
+    restart: unless-stopped
+
+  ttyd-r4:
+    build:
+      context: ./ttyd
+    image: bgp-lab1-ttyd:latest
+    container_name: ${LAB_PREFIX:-bgp_lab1}_ttyd_r4
+    command: >
+      -W -p 7684 -t fontSize=16 -t theme=dark
+      docker exec -i ${LAB_PREFIX:-bgp_lab1}_r4 vtysh
+    ports:
+      - "${R4_PORT:-7684}:7684"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - r4
+    restart: unless-stopped
