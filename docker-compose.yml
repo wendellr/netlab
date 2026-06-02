@@ -72,7 +72,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx:/etc/nginx/conf.d:ro
       - ./onboarding.html:/usr/share/nginx/html/index.html:ro
     depends_on:
       - ttyd-r1
