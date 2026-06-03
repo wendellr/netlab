@@ -111,9 +111,11 @@ services:
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://netlab.ioda.com.br}
       NGINX_CONTAINER: ${NGINX_CONTAINER:-${LAB_PREFIX:-bgp_lab1}_nginx}
       NGINX_LABS_PATH: ${NGINX_LABS_PATH:-/data/nginx/labs/labs.conf}
+      LABS_PAGE_DIR: ${LABS_PAGE_DIR:-/data/onboarding/labs}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./nginx/labs:/data/nginx/labs
+      - ./onboarding/labs:/data/onboarding/labs
     restart: unless-stopped
 
   # -----------------------------------------------------------

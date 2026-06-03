@@ -686,9 +686,18 @@ clear ip bgp * soft
 
         const data = await response.json();
         slotLabel.textContent = `Aluno: ${data.id} (expira em ${data.expiresAt})`;
-        statusLabel.textContent = 'Lab pronto. Use os links abaixo.';
+        statusLabel.textContent = 'Lab pronto. Abra a pagina do aluno e use os links abaixo.';
 
         output.querySelectorAll('a').forEach((a) => a.remove());
+        const pageLink = document.createElement('a');
+        pageLink.href = data.pageURL;
+        pageLink.target = '_blank';
+        pageLink.rel = 'noopener';
+        pageLink.textContent = `Abrir pagina do aluno (${data.pagePath})`;
+        output.appendChild(pageLink);
+
+        window.open(data.pageURL, '_blank', 'noopener');
+
         ['r1', 'r2', 'r3', 'r4'].forEach((key) => {
           const a = document.createElement('a');
           a.href = data.urls[key];

@@ -5,10 +5,12 @@ import (
   "encoding/json"
   "errors"
   "fmt"
+  "html/template"
   "log"
   "net/http"
   "os"
   "os/exec"
+  "path/filepath"
   "sort"
   "strconv"
   "strings"
@@ -29,6 +31,7 @@ type config struct {
   PublicBaseURL string
   NginxContainer string
   NginxLabsPath string
+  LabsPageDir   string
 }
 
 type labInfo struct {
@@ -47,6 +50,8 @@ type labResponse struct {
   ExpiresAt string            `json:"expiresAt"`
   Paths     map[string]string `json:"paths"`
   URLs      map[string]string `json:"urls"`
+  PagePath  string            `json:"pagePath"`
+  PageURL   string            `json:"pageURL"`
 }
 
 var (
@@ -98,6 +103,7 @@ func loadConfig() config {
     PublicBaseURL: strings.TrimRight(getEnv("PUBLIC_BASE_URL", "https://netlab.ioda.com.br"), "/"),
     NginxContainer: getEnv("NGINX_CONTAINER", "bgp_lab1_nginx"),
     NginxLabsPath: getEnv("NGINX_LABS_PATH", "/data/nginx/labs/labs.conf"),
+    LabsPageDir:   getEnv("LABS_PAGE_DIR", "/data/onboarding/labs"),
   }
 }
 
@@ -193,6 +199,10 @@ func getOrCreateLab(ctx context.Context, name string) (labInfo, error) {
     if err := startLab(ctx, info); err != nil {
       releaseSlot(ctx, info)
       return labInfo{}, err
+    }
+
+    if err := writeLabPage(info); err != nil {
+      log.Printf("write lab page failed: %v", err)
     }
 
     if err := refreshNginxRoutes(ctx); err != nil {
@@ -310,6 +320,8 @@ func buildResponse(info labInfo) labResponse {
     "r4": fmt.Sprintf("/%s/r4/", info.Prefix),
   }
 
+  pagePath := fmt.Sprintf("/%s/", info.Prefix)
+
   urls := map[string]string{}
   for key, path := range paths {
     urls[key] = cfg.PublicBaseURL + path
@@ -323,7 +335,150 @@ func buildResponse(info labInfo) labResponse {
     ExpiresAt: info.ExpiresAt.Format(time.RFC3339),
     Paths:     paths,
     URLs:      urls,
+    PagePath:  pagePath,
+    PageURL:   cfg.PublicBaseURL + pagePath,
   }
+}
+
+type labPageData struct {
+  Name      string
+  Prefix    string
+  ExpiresAt string
+  BaseURL   string
+}
+
+const labPageTemplate = `<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lab {{.Prefix}} - BGP Lab 1</title>
+  <style>
+    :root {
+      --bg: #0b0f1a;
+      --card: #161e33;
+      --line: #233050;
+      --ink: #f5f7ff;
+      --muted: #b8c0d6;
+      --accent: #ffb000;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
+      background: linear-gradient(180deg, #0b0f1a, #12182a);
+      color: var(--ink);
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 22px 60px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    h1 { margin: 0 0 6px; font-size: 28px; }
+    p { color: var(--muted); }
+    .links {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    a {
+      display: block;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      text-decoration: none;
+      color: var(--ink);
+      background: #0f1528;
+    }
+    .pill {
+      display: inline-flex;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <span class="pill">{{.Prefix}}</span>
+      <h1>Seu lab esta pronto</h1>
+      <p>Aluno: {{.Name}} · Expira em {{.ExpiresAt}}</p>
+    </div>
+    <div class="card">
+      <h2>Entrar nos roteadores</h2>
+      <div class="links">
+        <a href="{{.BaseURL}}/{{.Prefix}}/r1/" target="_blank" rel="noopener">R1 - AS1</a>
+        <a href="{{.BaseURL}}/{{.Prefix}}/r2/" target="_blank" rel="noopener">R2 - AS2</a>
+        <a href="{{.BaseURL}}/{{.Prefix}}/r3/" target="_blank" rel="noopener">R3 - AS3</a>
+        <a href="{{.BaseURL}}/{{.Prefix}}/r4/" target="_blank" rel="noopener">R4 - AS4</a>
+      </div>
+    </div>
+    <div class="card">
+      <h2>O que fazer agora</h2>
+      <p>Abra o roteiro completo na aba "Roteiro completo" da pagina inicial. Em cada roteador, valide BGP e execute as etapas de prepend e MED.</p>
+    </div>
+  </div>
+</body>
+</html>
+`
+
+func writeLabPage(info labInfo) error {
+  if cfg.LabsPageDir == "" {
+    return nil
+  }
+
+  pageDir := filepath.Join(cfg.LabsPageDir, info.Prefix)
+  if err := os.MkdirAll(pageDir, 0755); err != nil {
+    return fmt.Errorf("create lab page dir: %w", err)
+  }
+
+  pagePath := filepath.Join(pageDir, "index.html")
+  tmpl, err := template.New("lab-page").Parse(labPageTemplate)
+  if err != nil {
+    return fmt.Errorf("parse lab page template: %w", err)
+  }
+
+  file, err := os.Create(pagePath)
+  if err != nil {
+    return fmt.Errorf("create lab page: %w", err)
+  }
+  defer file.Close()
+
+  data := labPageData{
+    Name:      info.Name,
+    Prefix:    info.Prefix,
+    ExpiresAt: info.ExpiresAt.Format(time.RFC3339),
+    BaseURL:   cfg.PublicBaseURL,
+  }
+
+  if err := tmpl.Execute(file, data); err != nil {
+    return fmt.Errorf("render lab page: %w", err)
+  }
+
+  return nil
+}
+
+func removeLabPage(info labInfo) error {
+  if cfg.LabsPageDir == "" {
+    return nil
+  }
+  pageDir := filepath.Join(cfg.LabsPageDir, info.Prefix)
+  if err := os.RemoveAll(pageDir); err != nil {
+    return fmt.Errorf("remove lab page dir: %w", err)
+  }
+  return nil
 }
 
 func refreshNginxRoutes(ctx context.Context) error {
@@ -419,6 +574,9 @@ func cleanupLoop() {
       }
       if err := stopLab(ctx, info); err != nil {
         log.Printf("stop lab %s failed: %v", info.Prefix, err)
+      }
+      if err := removeLabPage(info); err != nil {
+        log.Printf("remove lab page %s failed: %v", info.Prefix, err)
       }
       releaseSlot(ctx, info)
     }
