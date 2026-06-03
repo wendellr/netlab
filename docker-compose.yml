@@ -95,7 +95,6 @@ services:
   provisioner:
     build:
       context: ./provisioner
-    image: bgp-lab1-provisioner:latest
     container_name: ${LAB_PREFIX:-bgp_lab1}_provisioner
     profiles:
       - provisioner
