@@ -85,6 +85,18 @@ services:
       - ttyd-r4
     restart: unless-stopped
 
+  redis:
+    image: redis:7.2-alpine
+    container_name: ${LAB_PREFIX:-bgp_lab1}_redis
+    profiles:
+      - provisioner
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
   provisioner:
     build:
       context: ./provisioner
@@ -95,7 +107,7 @@ services:
     ports:
       - "${PROVISIONER_PORT:-9002}:9002"
     environment:
-      REDIS_ADDR: ${REDIS_ADDR:-127.0.0.1:6379}
+      REDIS_ADDR: ${REDIS_ADDR:-redis:6379}
       COMPOSE_DIR: ${COMPOSE_DIR:-}
       LAB_TTL_SECONDS: ${LAB_TTL_SECONDS:-7200}
       MAX_SLOTS: ${MAX_SLOTS:-15}
@@ -135,6 +147,8 @@ services:
     volumes:
       - ./frr/r1:/etc/frr
     restart: unless-stopped
+    profiles:
+      - lab
 
   # -----------------------------------------------------------
   # R2 — AS 2
@@ -165,6 +179,8 @@ services:
     volumes:
       - ./frr/r2:/etc/frr
     restart: unless-stopped
+    profiles:
+      - lab
 
   # -----------------------------------------------------------
   # R3 — AS 3
@@ -197,6 +213,8 @@ services:
     volumes:
       - ./frr/r3:/etc/frr
     restart: unless-stopped
+    profiles:
+      - lab
 
   # -----------------------------------------------------------
   # R4 — AS 4
@@ -226,6 +244,8 @@ services:
     volumes:
       - ./frr/r4:/etc/frr
     restart: unless-stopped
+    profiles:
+      - lab
 
   # -----------------------------------------------------------
   # ttyd-r1..r4 — terminais web para os alunos
@@ -246,6 +266,8 @@ services:
     depends_on:
       - r1
     restart: unless-stopped
+    profiles:
+      - lab
 
   ttyd-r2:
     build:
@@ -262,6 +284,8 @@ services:
     depends_on:
       - r2
     restart: unless-stopped
+    profiles:
+      - lab
 
   ttyd-r3:
     build:
@@ -278,6 +302,8 @@ services:
     depends_on:
       - r3
     restart: unless-stopped
+    profiles:
+      - lab
 
   ttyd-r4:
     build:
@@ -294,3 +320,8 @@ services:
     depends_on:
       - r4
     restart: unless-stopped
+    profiles:
+      - lab
+
+volumes:
+  redis_data:
