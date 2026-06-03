@@ -78,11 +78,6 @@ services:
     volumes:
       - ./nginx:/etc/nginx/conf.d:ro
       - ./onboarding:/usr/share/nginx/html:ro
-    depends_on:
-      - ttyd-r1
-      - ttyd-r2
-      - ttyd-r3
-      - ttyd-r4
     restart: unless-stopped
 
   redis:
